@@ -1,0 +1,34 @@
+{
+  "name": "baewoo_mongodb",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "ts-node src/server.ts",
+    "watch": "nodemon -e ts -w ./src -x npm start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@accounts/boost": "^0.17.0",
+    "@accounts/mongo": "^0.17.0",
+    "@accounts/password": "^0.17.0",
+    "@accounts/rest-express": "^0.17.0",
+    "body-parser": "^1.19.0",
+    "config": "^3.2.2",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "mongodb": "^3.3.0",
+    "mongoose": "^5.6.9"
+  },
+  "devDependencies": {
+    "@types/config": "0.0.34",
+    "@types/express": "^4.17.0",
+    "@types/mongodb": "^3.2.3",
+    "@types/mongoose": "^5.5.12",
+    "nodemon": "^1.19.1",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3"
+  }
+}

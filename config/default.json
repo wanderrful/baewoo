@@ -1,0 +1,12 @@
+{
+    "PORT": 1111,
+    "MONGO_URI": "",
+    "DB_NAME": "",
+    "MONGO_USER": "",
+    "MONGO_PW": "",
+    "MONGO_ADDRESS": "",
+    "MONGO_PARAMS": "",
+    "DB_COLLECTION_USERS": "",
+    "DB_COLLECTION_WORDS": "",
+    "ACCOUNTS_SECRET": ""
+}
