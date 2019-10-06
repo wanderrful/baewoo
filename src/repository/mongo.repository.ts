@@ -1,23 +1,40 @@
-import * as mongoose from "mongoose";
+import { connect } from "mongoose";
 import MongoDBInterface from '@accounts/mongo';
 
 import { ACCOUNTS_SECRET, DB_NAME, DB_COLLECTION_USERS, MONGO_USER, MONGO_PW, MONGO_ADDRESS, MONGO_PARAMS } from "../../config";
 import AccountsServer from "@accounts/server";
 import AccountsPassword from "@accounts/password";
 
-const URI = `mongodb+srv://${MONGO_USER}:${MONGO_PW}@${MONGO_ADDRESS}/${DB_NAME}?${MONGO_PARAMS}`;
+const getURI = (dbName: string) => `mongodb+srv://${MONGO_USER}:${MONGO_PW}@${MONGO_ADDRESS}/${dbName}?${MONGO_PARAMS}`;
 
-export const getMongo = async () => {
-    const mongo = await mongoose.connect(URI, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true });
-    console.log(`** \x1b[32mConnected to Mongo\x1b[0m: ${mongo.connections.length} connection(s) currently live`);
-    return mongo.connection;
+let _db: typeof import("mongoose");
+
+export const initDb = async callback => {
+    if (_db) {
+        console.warn("\x1b[33m** \x1b[0mAttempted to initialize DB after connection was made!");
+        return callback(null, _db);
+    }
+    _db = await connect(getURI(DB_NAME), { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true });
+    console.log(`** \x1b[32mConnected to Mongo\x1b[0m: ${_db.connections.length} connection(s) currently live`);
+    return callback(null, _db);
 };
 
-export const getAccountsServerMiddleware = async () => {
-    const mongo = await getMongo();
+export const getDb = () => {
+    if (!_db) {
+        throw new Error("\x1b[31m** \x1b[0mAttempted to get DB but the connection wasn't there!");
+    }
+    return _db;
+};
+
+export const getMongo = () => {
+    return getDb().connection;
+};
+
+export const getAccountsServerMiddleware = () => {
+    const mongo = getDb();
     return new AccountsServer(
         {
-            db: new MongoDBInterface(mongo, {
+            db: new MongoDBInterface(mongo.connection.db, {
                 collectionName: DB_COLLECTION_USERS
             }),
             tokenSecret: ACCOUNTS_SECRET
