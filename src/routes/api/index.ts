@@ -1,6 +1,5 @@
 /* This file defines routes for the prefix `/api/v1/` */
 import { Router } from "express";
-import { UsernameRoute } from "../routes.interface";
 import AccountsRouter from "./accounts";
 import WordsRouter from "./words";
 

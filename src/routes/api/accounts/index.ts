@@ -5,7 +5,7 @@ import { Router } from "express";
 import accountsExpress, { userLoader } from '@accounts/rest-express';
 
 import { getAccountsServerMiddleware } from "../../../repository/mongo.repository";
-import { UsernameRoute } from "routes/routes.interface";
+import { CreateUserRoute } from "routes/routes.interface";
 
 const accountsServer = getAccountsServerMiddleware();
 
@@ -24,8 +24,8 @@ AccountsRouter.get("/user", userLoader(accountsServer), (req, res) => {
     res.end();
 });
 
-AccountsRouter.get("/user/:username/:password", (req: UsernameRoute, res) => {
-    const { username, password } = req.params;
+AccountsRouter.post("/user", (req: CreateUserRoute, res) => {
+    const { username, password } = req.body;
     res.send(`TO DO: I want to make an account for ${username} with a password of ${password}`);
     res.end();
 });

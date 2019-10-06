@@ -26,10 +26,6 @@ export const getDb = () => {
     return _db;
 };
 
-export const getMongo = () => {
-    return getDb().connection;
-};
-
 export const getAccountsServerMiddleware = () => {
     const mongo = getDb();
     return new AccountsServer(

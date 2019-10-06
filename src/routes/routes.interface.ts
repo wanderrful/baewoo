@@ -1,7 +1,7 @@
 import { Request } from "express";
 
-export interface UsernameRoute extends Request {
-    params: {
+export interface CreateUserRoute extends Request {
+    body: {
         username: string,
         password: string
     }
