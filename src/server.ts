@@ -1,7 +1,8 @@
 import { createServer } from "http";
 import * as express from "express";
 import * as cors from "cors";
-import * as bodyParser from "body-parser";
+import { urlencoded, json } from "body-parser";
+import { initialize, use, Strategy } from "passport";
 
 import { TrafficLogger } from "./middleware";
 
@@ -12,10 +13,12 @@ import { initDb } from "./repository/mongo.repository";
 initDb(async () => {
     const app = express();
 
-    // Apply middleware
+    // Apply dependency middleware
     app.use(cors());
-    app.use(bodyParser.urlencoded({ extended: true }));
-    app.use(bodyParser.json());
+    app.use(urlencoded({ extended: true }));
+    app.use(json());
+    app.use(initialize());
+    // Apply my own middleware
     app.use(TrafficLogger);
 
     // Load routers (requires DB connection to import)

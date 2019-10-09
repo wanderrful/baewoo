@@ -1,5 +1,4 @@
 /* This file defines routes for the prefix `/api/v1/accounts/` */
-
 import { Router } from "express";
 
 import accountsExpress, { userLoader } from '@accounts/rest-express';

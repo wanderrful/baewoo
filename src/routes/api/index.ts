@@ -2,6 +2,7 @@
 import { Router } from "express";
 import AccountsRouter from "./accounts";
 import WordsRouter from "./words";
+import AuthRouter from "./auth";
 
 const APIRouter = Router();
 
@@ -18,5 +19,6 @@ APIRouter.get("/", (req, res) => {
 // Apply sub-routes
 APIRouter.use("/accounts", AccountsRouter);
 APIRouter.use("/words", WordsRouter);
+APIRouter.use("/auth", AuthRouter);
 
 export default APIRouter;
