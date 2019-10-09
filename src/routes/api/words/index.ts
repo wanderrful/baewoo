@@ -1,84 +1,39 @@
-import { Router } from "express";
-import Word from "../../../models/Word";
-import { BaewooResponse } from "../../../models/dto/Response";
+import { Router, Request } from "express";
+import WordService from "../../../service/word";
+
 import { CreateWord, ReadAllWords, ReadWordById, DeleteById, UpdateWordById } from "./routes.interface";
-import { handleError } from "../../shared";
 
 const WordsRouter = Router();
 
-WordsRouter.post("/", async (req: CreateWord, res) => {
+const wordService = new WordService();
+
+WordsRouter.post("/", async (req: (Request & CreateWord), res) => {
     const { korean, english, level } = req.body;
-    try {
-        const newWord = await Word.create({
-            korean: decodeURIComponent(korean),
-            english,
-            level: parseInt(level)
-        });
-        await newWord.save();
-
-        res.send(new BaewooResponse({
-            data: newWord.toJSON(),
-            message: "Added new word to database"
-        }).render());
-        res.end();
-    } catch (e) {
-        handleError(res, e);
-    }
+    const result = await wordService.createWord(korean, english, level);
+    res.json(result);
 });
 
-WordsRouter.get("/", async (req: ReadAllWords, res) => {
-    const result = await Word.find({}).exec();
-    res.send(result);
-    res.end();
+WordsRouter.get("/", async (req: (Request & ReadAllWords), res) => {
+    const result = await wordService.getWords();
+    res.json(result);
 });
 
-WordsRouter.get("/:id", async (req: ReadWordById, res) => {
+WordsRouter.get("/:id", async (req: (Request & ReadWordById), res) => {
     const { id } = req.params;
-    const result = await Word.findOne({ _id: id }).exec();
-    res.send(result);
-    res.end();
+    const result = await wordService.getWord(id);
+    res.json(result);
 });
 
-WordsRouter.put("/:id", async (req: UpdateWordById, res) => {
+WordsRouter.put("/:id", async (req: (Request & UpdateWordById), res) => {
     const { id } = req.params;
-    try {
-        if (!Object.keys(req.body).length) throw new Error("No arguments provided");
-        let changes = Object.keys(req.body).reduce((acc, cur) => {
-            let keys = [];
-            Word.schema.eachPath(path => {
-                keys.push(path);
-            });
-            if (keys.includes(cur)) {
-                acc[cur] = req.body[cur];
-                return acc;
-            }
-        }, {});
-        await Word.findByIdAndUpdate(id, changes, { runValidators: true });
-        res.end();
-    } catch (e) {
-        handleError(res, e);
-    }
+    const result = await wordService.updateWord(id, req.body);
+    res.json(result);
 });
 
-WordsRouter.delete("/:id", async (req: DeleteById, res) => {
+WordsRouter.delete("/:id", async (req: (Request & DeleteById), res) => {
     const { id } = req.params;
-    try {
-        const removedWord = await Word.deleteOne({
-            _id: id
-        });
-        const { ok, n } = removedWord;
-        if (ok !== 1 || n === 0) {
-            throw new Error(`Failed to delete (${n} items found)`);
-        }
-
-        res.send(new BaewooResponse({
-            data: { ok },
-            message: `Removed ${n} word(s) from database`
-        }).render());
-        res.end();
-    } catch (e) {
-        handleError(res, e);
-    }
+    const result = await wordService.deleteWord(id);
+    res.json(result);
 });
 
 export default WordsRouter;
