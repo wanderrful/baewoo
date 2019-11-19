@@ -1,3 +1,8 @@
 node_modules
 build
+
+# Config files
 config/local.json
+
+# Placeholder data for local testing purposes
+_placeholderData

@@ -5,8 +5,7 @@ import { Router } from "express";
 
 const CoreRouter = Router();
 CoreRouter.get("/", (req, res) => {
-    res.send("Hello world!");
-    res.end();
+    res.send("<a href='/api/v1/auth/discord'>Login</a>");
 });
 
 export default CoreRouter;

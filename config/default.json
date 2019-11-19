@@ -1,12 +1,14 @@
 {
-    "PORT": 1111,
-    "MONGO_URI": "",
+    "HOSTNAME": "",
+    "PORT": 4000,
     "DB_NAME": "",
+    "DB_COLLECTION_USERS": "",
+    "DB_COLLECTION_WORDS": "",
     "MONGO_USER": "",
     "MONGO_PW": "",
     "MONGO_ADDRESS": "",
     "MONGO_PARAMS": "",
-    "DB_COLLECTION_USERS": "",
-    "DB_COLLECTION_WORDS": "",
-    "ACCOUNTS_SECRET": ""
+    "SESSION_SECRET": "",
+    "DISCORD_CLIENT_ID": "",
+    "DISCORD_CLIENT_SECRET": ""
 }

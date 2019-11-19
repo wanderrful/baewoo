@@ -7,33 +7,33 @@ const WordsRouter = Router();
 
 const wordService = new WordService();
 
-WordsRouter.post("/", async (req: (Request & CreateWord), res) => {
+WordsRouter.post("/", async function createNewWord(req: (Request & CreateWord), res) {
     const { korean, english, level } = req.body;
     const result = await wordService.createWord(korean, english, level);
-    res.json(result);
+    res.status(result.statusCode).json(result);
 });
 
-WordsRouter.get("/", async (req: (Request & ReadAllWords), res) => {
+WordsRouter.get("/", async function getAllWords(req: (Request & ReadAllWords), res) {
     const result = await wordService.getWords();
-    res.json(result);
+    res.status(result.statusCode).json(result);
 });
 
-WordsRouter.get("/:id", async (req: (Request & ReadWordById), res) => {
+WordsRouter.get("/:id", async function getWord(req: (Request & ReadWordById), res) {
     const { id } = req.params;
     const result = await wordService.getWord(id);
-    res.json(result);
+    res.status(result.statusCode).json(result);
 });
 
-WordsRouter.put("/:id", async (req: (Request & UpdateWordById), res) => {
+WordsRouter.put("/:id", async function updateWord(req: (Request & UpdateWordById), res) {
     const { id } = req.params;
     const result = await wordService.updateWord(id, req.body);
-    res.json(result);
+    res.status(result.statusCode).json(result);
 });
 
-WordsRouter.delete("/:id", async (req: (Request & DeleteById), res) => {
+WordsRouter.delete("/:id", async function deleteWord(req: (Request & DeleteById), res) {
     const { id } = req.params;
     const result = await wordService.deleteWord(id);
-    res.json(result);
+    res.status(result.statusCode).json(result);
 });
 
 export default WordsRouter;
