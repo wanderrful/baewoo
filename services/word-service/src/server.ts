@@ -32,7 +32,7 @@ initDb(async () => {
     passport.use(new Strategy({
         clientID: DISCORD_CLIENT_ID,
         clientSecret: DISCORD_CLIENT_SECRET,
-        callbackURL: `${HOSTNAME}:${PORT}/api/v1/auth/discord/redirect`, // TODO replace localhost with normal hostname (but how do I reference it, if not literally?)
+        callbackURL: `${HOSTNAME}:${PORT}/api/v1/auth/discord/redirect`,
         scope: ["identify"]
     },
         (accessToken, refreshToken, profile, cb) => {
