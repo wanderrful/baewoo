@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: baewoo-app
+
+  data:
+    mongodb:
+      # Using Environment Variables
+      uri: mongodb+srv://${MONGO_CLOUD_USER}:${MONGO_CLOUD_PASSWORD}@${MONGO_CLOUD_HOST}/baewoo?retryWrites=true&w=majority
+
+routes:
+  baseUri: api
+  v1:
+    userInfo: ${routes.baseUri}/v1/user
+    wordConfig: ${routes.baseUri}/v1/word/config
+    word: ${routes.baseUri}/v1/word
+    learn: ${routes.baseUri}/v1/learn
+  auth:
+    whitelist: ${routes.v1.learn}, ${routes.v1.userInfo}
