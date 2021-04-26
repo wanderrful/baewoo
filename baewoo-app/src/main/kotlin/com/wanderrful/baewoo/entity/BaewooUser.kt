@@ -1,6 +1,8 @@
 package com.wanderrful.baewoo.entity
 
 import com.wanderrful.baewoo.dao.UserInfo
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.security.oauth2.core.user.OAuth2UserAuthority
@@ -12,7 +14,11 @@ import java.util.*
 data class BaewooUser(
     private val name: String,
     private val attributes: MutableMap<String, Any>,
-    private val authorities: MutableCollection<out GrantedAuthority>
+    private val authorities: MutableCollection<out GrantedAuthority>,
+
+    // Metadata
+    @LastModifiedDate val lastModifiedDate: Date,
+    @CreatedDate val createdDate: Date,
 ) : OAuth2User {
 
     override fun getName(): String = name
@@ -25,11 +31,16 @@ data class BaewooUser(
 
         /**
          * Create new OAuth2-compatible user.
+         *  Used when a new user logs in for the first time.
          */
         fun from(oauth2User: OAuth2User): BaewooUser = BaewooUser(
             name = oauth2User.attributes[AttributeKey.NAME.key].toString(),
             attributes = mapOAuth2UserAttributes(oauth2User),
-            authorities = mapOAuth2UserAuthorities())
+            authorities = mapOAuth2UserAuthorities(),
+
+            createdDate = Date(),
+            lastModifiedDate = Date()
+        )
 
         /**
          * Translate OAuth2-compatible DTO to DAO
@@ -41,7 +52,10 @@ data class BaewooUser(
                 AttributeKey.EXTERNAL_ID.key to userInfo.externalId,
                 AttributeKey.LEVEL.key to userInfo.level,
                 AttributeKey.PROVIDER.key to userInfo.provider),
-            authorities = mutableListOf())
+            authorities = mutableListOf(),
+            lastModifiedDate = userInfo.lastModifiedDate,
+
+            createdDate = userInfo.createdDate)
 
         private fun mapOAuth2UserAttributes(
             oauth2User: OAuth2User

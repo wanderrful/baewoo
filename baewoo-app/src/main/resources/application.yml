@@ -20,7 +20,7 @@ routes:
   baseUri: api
   v1:
     userInfo: ${routes.baseUri}/v1/user
-    wordConfig: ${routes.baseUri}/v1/word/config
+    wordConfig: ${routes.baseUri}/v1/wordconfig
     word: ${routes.baseUri}/v1/word
     learn: ${routes.baseUri}/v1/learn
   auth:

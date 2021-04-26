@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.wanderrful</groupId>
 	<artifactId>baewoo</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<name>baewoo-app</name>
 	<description>Front-end for Baewoo app</description>
 	<properties>

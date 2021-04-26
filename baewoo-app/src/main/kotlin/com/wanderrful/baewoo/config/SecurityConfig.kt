@@ -4,6 +4,7 @@ import com.wanderrful.baewoo.dao.UserInfo
 import com.wanderrful.baewoo.entity.BaewooUser
 import com.wanderrful.baewoo.filter.LoggingFilter
 import com.wanderrful.baewoo.repository.UserInfoRepository
+import com.wanderrful.baewoo.service.UserService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
@@ -19,7 +20,7 @@ import reactor.core.publisher.Mono
 
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
-class SecurityConfig {
+class SecurityConfig(private val userService: UserService) {
 
     @Value("\${routes.auth.whitelist}")
     private lateinit var authWhitelist: Array<String>
@@ -63,21 +64,12 @@ class SecurityConfig {
             delegate.loadUser(request)
                 .doOnError { throw OAuth2AuthenticationException(OAuth2Error("")) }
                 .flatMap { oauth2User ->
-                    userInfoRepository.findByExternalId(oauth2User.attributes["id"].toString())
-                        .filter { it != null }
-                        .map {  // If the user exists in the DB
-                            BaewooUser.from(it)
-                        }
+                    userService.findByExternalId(oauth2User.attributes["id"].toString())
+                        // If this user doesn't exist
                         .switchIfEmpty(Mono.justOrEmpty(oauth2User)
-                            .map {  // If the user doesn't exist in the DB
-                                BaewooUser.from(it)
-                            }
-                            .flatMap {  // Save new UserInfo object
-                                userInfoRepository.save(UserInfo.from(it))
-                                    .map {  // Re-assemble BaewooUser from new UserInfo
-                                        BaewooUser.from(it)
-                                    }
-                            })
+                            // Register new user
+                            .map {  BaewooUser.from(it) }
+                            .flatMap {  userService.register(UserInfo.from(it)) })
                 }
         }
     }

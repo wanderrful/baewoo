@@ -10,9 +10,9 @@ import java.time.temporal.ChronoUnit
  * @param interval Represents the time needed to advance to the next rating.
  */
 enum class WordRating(
-    private val rating: Int,
-    private val displayName: String,
-    private val interval: Long
+    val rating: Int,
+    val displayName: String,
+    val interval: Long
 ) {
     NONE(0,
         "Not Seen",
