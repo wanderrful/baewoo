@@ -7,6 +7,15 @@ spring:
       # Using Environment Variables
       uri: mongodb+srv://${MONGO_CLOUD_USER}:${MONGO_CLOUD_PASSWORD}@${MONGO_CLOUD_HOST}/baewoo?retryWrites=true&w=majority
 
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope: read:user
+
 routes:
   baseUri: api
   v1:

@@ -1,23 +1,20 @@
 package com.wanderrful.baewoo.config
 
+import com.wanderrful.baewoo.dao.UserInfo
+import com.wanderrful.baewoo.entity.BaewooUser
 import com.wanderrful.baewoo.filter.LoggingFilter
-import com.wanderrful.baewoo.filter.security.JwtSigner
+import com.wanderrful.baewoo.repository.UserInfoRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-import org.springframework.security.authentication.ReactiveAuthenticationManager
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.userdetails.*
+import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.security.web.server.SecurityWebFilterChain
-import org.springframework.security.web.server.authentication.AuthenticationWebFilter
-import org.springframework.security.web.server.authentication.ServerAuthenticationConverter
-import org.springframework.util.StringUtils
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException
+import org.springframework.security.oauth2.core.OAuth2Error
+import org.springframework.security.oauth2.client.userinfo.*
 import reactor.core.publisher.Mono
 
 @EnableWebFluxSecurity
@@ -34,85 +31,55 @@ class SecurityConfig {
     private lateinit var routeUserInfoV1: String
 
     @Bean
-    fun securityWebFilterChain(http: ServerHttpSecurity,
-                               jwtAuthenticationManager: ReactiveAuthenticationManager,
-                               jwtAuthenticationConverter: ServerAuthenticationConverter
-    ): SecurityWebFilterChain {
-        val loggingFilter = LoggingFilter()
+    fun securityWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain = http
+        // Define route authentication rules
+        .authorizeExchange()
+        .anyExchange().authenticated()
+        .and()
 
-        val jwtAuthFilter = AuthenticationWebFilter(jwtAuthenticationManager)
-        jwtAuthFilter.setServerAuthenticationConverter(jwtAuthenticationConverter)
+        .csrf().disable()
+        .httpBasic().disable()
+        .formLogin().disable()
+        .logout().disable()
 
-        return http
-            // Define route authentication rules
-            .authorizeExchange()
-//        .pathMatchers(HttpMethod.GET, routeUserInfoV1).hasRole("USER")
-//        .pathMatchers(HttpMethod.POST, routeWordV1).hasRole("MANAGER")
-//        .pathMatchers(HttpMethod.DELETE, routeWordV1).hasRole("MANAGER")
-//        .pathMatchers(HttpMethod.GET, *authWhitelist).permitAll()
-            .pathMatchers(HttpMethod.POST, "/login").permitAll()
-            .anyExchange().authenticated()
-            .and()
+        .oauth2Login()
+        .and()
 
-            .csrf().disable()
-            .httpBasic().disable()
-            .formLogin().disable()
-            .logout().disable()
+        // Add web filters
+        .addFilterAt(LoggingFilter(), SecurityWebFiltersOrder.LAST)
 
-            // Add web filters
-            .addFilterAt(jwtAuthFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-            .addFilterAt(loggingFilter, SecurityWebFiltersOrder.LAST)
+        .build()
 
-            .build()
-    }
-
+    /**
+     * Leverage OAuth2 data to load our user data when they
+     *  initially authenticate (i.e. no valid session data in cache).
+     */
     @Bean
-    fun jwtAuthenticationConverter(jwtSigner: JwtSigner): ServerAuthenticationConverter {
-        return ServerAuthenticationConverter { exchange ->
-            Mono.justOrEmpty(exchange)
-                .flatMap { it -> Mono
-                    .justOrEmpty(it.request.headers[HttpHeaders.AUTHORIZATION]?.firstOrNull())
-                    .filter { it.startsWith("Bearer ") }
-                    .map { it.substringAfter("Bearer ") }
-                }
-                .filter { it.isNotEmpty() }
-                .map { jwtSigner.validateJwt(it) }
-                .onErrorResume { Mono.empty() }
-                .map {
-                    UsernamePasswordAuthenticationToken(it.body.subject, it.body)
-                        .apply { details = "myDetails" }
-                }
-        }
-    }
-
-    @Bean
-    fun jwtAuthenticationManager(): ReactiveAuthenticationManager {
-        return ReactiveAuthenticationManager { authentication ->
-            Mono.justOrEmpty(authentication)
-                .map { token ->
-                    UsernamePasswordAuthenticationToken(
-                        token.principal, // TODO | This should be userId, not name
-                        token.credentials,  // TODO | This shouldn't be the entire JWT body object
-
-                        // TODO | Resolve permissions for user and populate authorities
-                        mutableListOf(SimpleGrantedAuthority("ROLE_USER"))
-                    ).apply { details = token.details }
+    fun oauth2UserService(
+        userInfoRepository: UserInfoRepository
+    ): ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> {
+        val delegate = DefaultReactiveOAuth2UserService()
+        return ReactiveOAuth2UserService { request ->
+            delegate.loadUser(request)
+                .doOnError { throw OAuth2AuthenticationException(OAuth2Error("")) }
+                .flatMap { oauth2User ->
+                    userInfoRepository.findByExternalId(oauth2User.attributes["id"].toString())
+                        .filter { it != null }
+                        .map {  // If the user exists in the DB
+                            BaewooUser.from(it)
+                        }
+                        .switchIfEmpty(Mono.justOrEmpty(oauth2User)
+                            .map {  // If the user doesn't exist in the DB
+                                BaewooUser.from(it)
+                            }
+                            .flatMap {  // Save new UserInfo object
+                                userInfoRepository.save(UserInfo.from(it))
+                                    .map {  // Re-assemble BaewooUser from new UserInfo
+                                        BaewooUser.from(it)
+                                    }
+                            })
                 }
         }
     }
-
-    @Bean
-    fun userDetailsService(): ReactiveUserDetailsService = MapReactiveUserDetailsService(
-        User.withDefaultPasswordEncoder()
-            .username("user")
-            .password("password")
-            .roles("USER")
-            .build(),
-        User.withDefaultPasswordEncoder()
-            .username("myAdmin")
-            .password("myAdmin")
-            .roles("USER", "MANAGER")
-            .build()
-    )
 
 }
