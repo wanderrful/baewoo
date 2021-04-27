@@ -31,7 +31,7 @@ class UserService(
      *  2.  Create the starting WordConfigs so that they can begin reviewing
      */
     fun register(userInfo: UserInfo): Mono<BaewooUser> {
-        return wordConfigService.unlockLevel(userInfo.id, 1)
+        return wordConfigService.unlockLevelForUser(userInfo.id, 1)
             .then(userInfoRepository.save(userInfo)
                 .map { BaewooUser.from(it) })
     }

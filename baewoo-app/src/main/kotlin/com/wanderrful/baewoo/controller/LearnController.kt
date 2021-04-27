@@ -2,12 +2,11 @@ package com.wanderrful.baewoo.controller
 
 import com.wanderrful.baewoo.dao.Word
 import com.wanderrful.baewoo.dao.WordConfig
+import com.wanderrful.baewoo.dto.ReviewResult
 import com.wanderrful.baewoo.entity.BaewooUser
 import com.wanderrful.baewoo.service.WordConfigService
 import org.springframework.security.core.annotation.CurrentSecurityContext
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 
 @RestController
@@ -15,26 +14,30 @@ import reactor.core.publisher.Flux
 class LearnController(private val wordConfigService: WordConfigService) {
 
     /**
-     * Retrieve all available reviews.
-     */
-    @GetMapping("/review")
-    fun reviewsGet(
-        @CurrentSecurityContext(expression = "authentication.principal") user: BaewooUser
-    ): Flux<WordConfig> = wordConfigService
-        .getAvailableReviews(
-            user.attributes[BaewooUser.AttributeKey.INTERNAL_ID.key].toString()
-        )
-
-    /**
      * Retrieve all available lessons.
+     *  Here, "lessons" are WordConfigs with a zero rating.
      */
     @GetMapping("/lesson")
-    fun lessonsGet(
+    fun lessonGet(
         @CurrentSecurityContext(expression = "authentication.principal") user: BaewooUser
-    ): Flux<Word> = wordConfigService
-        .getAvailableLessons(
-            user.attributes[BaewooUser.AttributeKey.INTERNAL_ID.key].toString(),
-            user.attributes[BaewooUser.AttributeKey.LEVEL.key] as Int,
-        )
+    ): Flux<Word> = wordConfigService.getAvailableLessons(user.getInternalId(), user.getLevel())
+
+    /**
+     * Retrieve all available reviews.
+     *  Here, "reviews" are WordConfigs with a non-zero rating.
+     */
+    @GetMapping("/review")
+    fun reviewGet(
+        @CurrentSecurityContext(expression = "authentication.principal") user: BaewooUser
+    ): Flux<WordConfig> = wordConfigService.getAvailableReviews(user.getInternalId())
+
+    /**
+     * Update WordConfig ratings, based on new review outcome data.
+     */
+    @PostMapping("/review")
+    fun reviewPost(
+        @CurrentSecurityContext(expression = "authentication.principal") user: BaewooUser,
+        @RequestBody reviewResults: List<ReviewResult>
+    ): Flux<WordConfig> = wordConfigService.handleReviewResults(user.getInternalId(), reviewResults)
 
 }

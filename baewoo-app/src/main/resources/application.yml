@@ -17,7 +17,7 @@ spring:
             scope: read:user
 
 routes:
-  baseUri: api
+  baseUri: /api
   v1:
     userInfo: ${routes.baseUri}/v1/user
     wordConfig: ${routes.baseUri}/v1/wordconfig

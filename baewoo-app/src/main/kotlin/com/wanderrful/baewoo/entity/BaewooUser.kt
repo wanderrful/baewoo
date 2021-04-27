@@ -27,6 +27,16 @@ data class BaewooUser(
 
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> = authorities
 
+    fun getInternalId() = attributes[AttributeKey.INTERNAL_ID.key] as String
+
+    fun getExternalId() = attributes[AttributeKey.EXTERNAL_ID.key] as String
+
+    fun getLevel() = attributes[AttributeKey.LEVEL.key] as Int
+
+    fun getProvider() = attributes[AttributeKey.PROVIDER.key] as String
+
+    fun getAvatarUrl() = attributes[BaewooUser.AttributeKey.AVATAR_URL.key] as? String
+
     companion object {
 
         /**

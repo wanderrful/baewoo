@@ -2,6 +2,7 @@ package com.wanderrful.baewoo.service
 
 import com.wanderrful.baewoo.dao.Word
 import com.wanderrful.baewoo.dao.WordConfig
+import com.wanderrful.baewoo.dto.ReviewResult
 import com.wanderrful.baewoo.enum.WordRating
 import com.wanderrful.baewoo.repository.WordConfigRepository
 import org.springframework.stereotype.Service
@@ -18,7 +19,7 @@ class WordConfigService(
      * When a new user is registered, we need to create WordConfig records
      *  for the first wave of lessons so that they can begin learning.
      */
-    fun unlockLevel(userId: String, level: Int): Flux<WordConfig> {
+    fun unlockLevelForUser(userId: String, level: Int): Flux<WordConfig> {
         return wordService.getAllWordsForLevel(level)
             .flatMap {
                 wordConfigRepository.save(WordConfig(
@@ -45,15 +46,52 @@ class WordConfigService(
      */
     fun getAvailableLessons(userId: String, level: Int): Flux<Word> {
         return wordConfigRepository.findAvailableLessonsByUserId(userId)
-            .map {
-                it.wordId
-            }
+            .map { it.wordId }
             .collectList()
-            .map {
-                wordService.getAllWordsInList(it)
-            }
+            .map { wordService.getAllWordsInList(it) }
             .flux()
             .flatMap { it }
+    }
+
+    /**
+     * Process results of a review for a user.
+     *  For reach result...
+     *  1.  Look up the WordConfig so we can see the current rating
+     *  2.  Save that rating with the adjusted value
+     */
+    fun handleReviewResults(userId: String, results: List<ReviewResult>): Flux<WordConfig> {
+        // TODO | Add behavior for leveling up the user!
+        return Flux.fromIterable(results)
+            .flatMap { result ->
+                wordConfigRepository.findByUserIdAndWordId(userId, result.wordId)
+                    .map {
+                        val newRating = getNewRating(it.rating, result.wasCorrect)
+
+                        return@map it.copy(
+                            rating = newRating,
+                            nextReviewDate = getNextReviewDate(newRating),
+                            lastModifiedDate = Date()
+                        )
+                    }
+                    .flatMap { wordConfigRepository.save(it) }
+            }
+    }
+
+    private fun getNewRating(rating: Int, wasCorrect: Boolean): Int {
+        val maxRating = WordRating.values().size - 1
+
+        // If correct, go to next level. If wrong, go down 2 levels
+        val modifier = if (wasCorrect) 1 else -2
+
+        return (rating + modifier).coerceIn(1, maxRating)
+    }
+
+    private fun getNextReviewDate(rating: Int): Date {
+        val maxRating = WordRating.values().size - 1
+
+        val newRating = rating.coerceIn(1, maxRating)
+
+        return Date(Date().time + WordRating.values()[newRating].interval)
     }
 
 }

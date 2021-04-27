@@ -30,14 +30,14 @@ data class UserInfo(
          * Create a new UserInfo object from OAuth2 data, for registering new users.
          */
         fun from(baewooUser: BaewooUser): UserInfo = UserInfo(
-            id = baewooUser.attributes[BaewooUser.AttributeKey.INTERNAL_ID.key] as String,
+            id = baewooUser.getInternalId(),
 
             name = baewooUser.name,
-            provider = baewooUser.attributes[BaewooUser.AttributeKey.PROVIDER.key] as String,
-            externalId = baewooUser.attributes[BaewooUser.AttributeKey.EXTERNAL_ID.key] as String,
-            avatarUrl = baewooUser.attributes[BaewooUser.AttributeKey.AVATAR_URL.key] as? String,
+            provider = baewooUser.getProvider(),
+            externalId = baewooUser.getExternalId(),
+            avatarUrl = baewooUser.getAvatarUrl(),
 
-            level = baewooUser.attributes[BaewooUser.AttributeKey.LEVEL.key] as Int,
+            level = baewooUser.getLevel(),
 
             lastModifiedDate = baewooUser.lastModifiedDate,
             createdDate = baewooUser.createdDate,

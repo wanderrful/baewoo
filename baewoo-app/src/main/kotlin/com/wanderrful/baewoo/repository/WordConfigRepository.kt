@@ -16,6 +16,11 @@ interface WordConfigRepository : ReactiveCrudRepository<WordConfig, String> {
     fun findByUserId(userId: String): Flux<WordConfig>
 
     /**
+     * Get a single WordConfig record.
+     */
+    fun findByUserIdAndWordId(userId: String, wordId: String): Mono<WordConfig>
+
+    /**
      * Get all words that are now eligible for review.
      *  We want all wordConfigs for this user, where:
      *  - `nextReviewDate` is in the past

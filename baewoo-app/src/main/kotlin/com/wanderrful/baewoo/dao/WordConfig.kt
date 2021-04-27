@@ -8,11 +8,13 @@ import java.util.*
 
 @Document(collection = "wordConfig")
 data class WordConfig(
+    // Keys
     @Id val id: String,
     val userId: String,
     val wordId: String,
-    val rating: Int,
 
+    // Content
+    val rating: Int,
     val nextReviewDate: Date,  // Epoch time zero means this has never been reviewed
 
     // Metadata

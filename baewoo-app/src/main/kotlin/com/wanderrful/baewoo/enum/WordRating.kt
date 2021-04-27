@@ -43,5 +43,5 @@ enum class WordRating(
         ChronoUnit.MONTHS.duration.toMillis().times(4)),
     BURNED(9,
         "Burned",
-        Long.MAX_VALUE)  // Forever
+        ChronoUnit.YEARS.duration.toMillis().times(1))
 }

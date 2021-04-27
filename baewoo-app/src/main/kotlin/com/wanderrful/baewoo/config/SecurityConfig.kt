@@ -31,6 +31,9 @@ class SecurityConfig(private val userService: UserService) {
     @Value("\${routes.v1.userInfo}")
     private lateinit var routeUserInfoV1: String
 
+    @Value("\${routes.v1.learn}")
+    private lateinit var routeLearnV1: String
+
     @Bean
     fun securityWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain = http
         // Define route authentication rules
