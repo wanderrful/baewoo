@@ -25,3 +25,11 @@ routes:
     learn: ${routes.baseUri}/v1/learn
   auth:
     whitelist: ${routes.v1.learn}, ${routes.v1.userInfo}
+
+
+# TODO | Promote these to Env Vars so we can configure them at the Ops layer
+baewoo:
+  maxUserLevel: 2
+  requiredRatingForLevelUp: 5
+  ratingModifierCorrect: 1
+  ratingModifierWrong: -2

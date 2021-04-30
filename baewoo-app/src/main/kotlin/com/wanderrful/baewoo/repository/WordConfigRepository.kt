@@ -36,4 +36,6 @@ interface WordConfigRepository : ReactiveCrudRepository<WordConfig, String> {
     @Query("{ 'userId': ?0, 'rating': 0 }")
     fun findAvailableLessonsByUserId(userId: String): Flux<WordConfig>
 
+    fun findAllByUserIdAndRatingLessThan(userId: String, rating: Int): Flux<WordConfig>
+
 }

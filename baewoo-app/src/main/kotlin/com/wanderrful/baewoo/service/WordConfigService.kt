@@ -5,34 +5,28 @@ import com.wanderrful.baewoo.dao.WordConfig
 import com.wanderrful.baewoo.dto.ReviewResult
 import com.wanderrful.baewoo.enum.WordRating
 import com.wanderrful.baewoo.repository.WordConfigRepository
+import com.wanderrful.baewoo.repository.WordRepository
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 import java.util.*
 
 @Service
 class WordConfigService(
     private val wordConfigRepository: WordConfigRepository,
-    private val wordService: WordService
+    private val wordRepository: WordRepository,
+    private val userLevelService: UserLevelService
 ) {
 
-    /**
-     * When a new user is registered, we need to create WordConfig records
-     *  for the first wave of lessons so that they can begin learning.
-     */
-    fun unlockLevelForUser(userId: String, level: Int): Flux<WordConfig> {
-        return wordService.getAllWordsForLevel(level)
-            .flatMap {
-                wordConfigRepository.save(WordConfig(
-                    id = UUID.randomUUID().toString(),
-                    userId = userId,
-                    wordId = it.id,
-                    rating = WordRating.NONE.rating,
-                    nextReviewDate = Date(0),  // Epoch time zero means it has never been reviewed
-                    createdDate = Date(),
-                    lastModifiedDate = Date(),
-                ))
-            }
-    }
+    @Value("\${baewoo.ratingModifierCorrect}")
+    private lateinit var ratingModifierCorrect: String
+
+    @Value("\${baewoo.ratingModifierWrong}")
+    private lateinit var ratingModifierWrong: String
+
+
 
     /**
      * Get available reviews (i.e. rating is not NONE and nextReviewDate is in the past).
@@ -48,7 +42,7 @@ class WordConfigService(
         return wordConfigRepository.findAvailableLessonsByUserId(userId)
             .map { it.wordId }
             .collectList()
-            .map { wordService.getAllWordsInList(it) }
+            .map { wordRepository.findAllById(it) }
             .flux()
             .flatMap { it }
     }
@@ -74,6 +68,11 @@ class WordConfigService(
                         )
                     }
                     .flatMap { wordConfigRepository.save(it) }
+                    .flatMap { wordConfig ->
+                        userLevelService.levelUp(userId)
+                            .map { wordConfig }
+                            .switchIfEmpty { Mono.just(wordConfig) }
+                    }
             }
     }
 
@@ -81,7 +80,7 @@ class WordConfigService(
         val maxRating = WordRating.values().size - 1
 
         // If correct, go to next level. If wrong, go down 2 levels
-        val modifier = if (wasCorrect) 1 else -2
+        val modifier = if (wasCorrect) ratingModifierCorrect.toInt() else ratingModifierWrong.toInt()
 
         return (rating + modifier).coerceIn(1, maxRating)
     }

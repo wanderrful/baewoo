@@ -5,11 +5,12 @@ import com.wanderrful.baewoo.entity.BaewooUser
 import com.wanderrful.baewoo.repository.UserInfoRepository
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import java.util.*
 
 @Service
 class UserService(
     private val userInfoRepository: UserInfoRepository,
-    private val wordConfigService: WordConfigService
+    private val userLevelService: UserLevelService
 ) {
 
     /**
@@ -18,9 +19,8 @@ class UserService(
     fun findByExternalId(userId: String, registerIfNotFound: Boolean = false): Mono<BaewooUser> {
         return userInfoRepository.findByExternalId(userId)
             .filter { it != null }
-            .map {  // If the user exists in the DB
-                BaewooUser.from(it)
-            }
+            // If the user exists in the DB
+            .map { BaewooUser.from(it) }
     }
 
     /**
@@ -31,7 +31,7 @@ class UserService(
      *  2.  Create the starting WordConfigs so that they can begin reviewing
      */
     fun register(userInfo: UserInfo): Mono<BaewooUser> {
-        return wordConfigService.unlockLevelForUser(userInfo.id, 1)
+        return userLevelService.unlockLevelForUser(userInfo.id, 1)
             .then(userInfoRepository.save(userInfo)
                 .map { BaewooUser.from(it) })
     }

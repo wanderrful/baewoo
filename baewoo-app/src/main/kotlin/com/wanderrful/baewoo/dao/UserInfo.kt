@@ -9,7 +9,7 @@ import java.util.*
 
 @Document(collection = "userInfo")
 data class UserInfo(
-    @Id val id: String,
+    @Id val id: String,  // Internal ID
 
     // Identity-related details
     val name: String,
