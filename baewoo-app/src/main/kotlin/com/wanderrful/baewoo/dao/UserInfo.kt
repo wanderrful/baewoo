@@ -5,7 +5,10 @@ import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.security.core.GrantedAuthority
 import java.util.*
+import java.util.stream.Collectors
+import java.util.stream.Stream
 
 @Document(collection = "userInfo")
 data class UserInfo(
@@ -16,6 +19,7 @@ data class UserInfo(
     val provider: String,  // OAuth2 provider used to login
     val externalId: String,  // UserId from the provider's platform
     val avatarUrl: String?,  // Populated if this user's provider shares an avatar image with us
+    val authorities: List<String>,  // User's allowed authorities
 
     // Baewoo-related details
     val level: Int,
@@ -36,6 +40,9 @@ data class UserInfo(
             provider = baewooUser.getProvider(),
             externalId = baewooUser.getExternalId(),
             avatarUrl = baewooUser.getAvatarUrl(),
+            authorities = baewooUser.authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList()),
 
             level = baewooUser.getLevel(),
 

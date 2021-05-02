@@ -2,6 +2,7 @@ package com.wanderrful.baewoo.service
 
 import com.wanderrful.baewoo.dao.UserInfo
 import com.wanderrful.baewoo.entity.BaewooUser
+import com.wanderrful.baewoo.enum.RoleAuthority
 import com.wanderrful.baewoo.repository.UserInfoRepository
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -31,8 +32,19 @@ class UserService(
      *  2.  Create the starting WordConfigs so that they can begin reviewing
      */
     fun register(userInfo: UserInfo): Mono<BaewooUser> {
-        return userLevelService.unlockLevelForUser(userInfo.id, 1)
-            .then(userInfoRepository.save(userInfo)
+        val newUser = UserInfo(
+            id = userInfo.id,
+            name = userInfo.name,
+            provider = userInfo.provider,
+            externalId = userInfo.externalId,
+            avatarUrl = userInfo.avatarUrl,
+            authorities = listOf(),
+            level = userInfo.level,
+            lastModifiedDate = userInfo.lastModifiedDate,
+            createdDate = userInfo.createdDate
+        )
+        return userLevelService.unlockLevelForUser(newUser.id, 1)
+            .then(userInfoRepository.save(newUser)
                 .map { BaewooUser.from(it) })
     }
 

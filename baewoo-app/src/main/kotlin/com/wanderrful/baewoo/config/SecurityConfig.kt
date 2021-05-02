@@ -2,11 +2,13 @@ package com.wanderrful.baewoo.config
 
 import com.wanderrful.baewoo.dao.UserInfo
 import com.wanderrful.baewoo.entity.BaewooUser
+import com.wanderrful.baewoo.enum.RoleAuthority
 import com.wanderrful.baewoo.filter.LoggingFilter
 import com.wanderrful.baewoo.repository.UserInfoRepository
 import com.wanderrful.baewoo.service.UserService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
@@ -36,8 +38,17 @@ class SecurityConfig(private val userService: UserService) {
 
     @Bean
     fun securityWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain = http
-        // Define route authentication rules
         .authorizeExchange()
+            .pathMatchers(HttpMethod.POST, routeWordV1)
+                .hasRole(getAdjustedRoleName(RoleAuthority.ROLE_CREATE_WORDS))
+            .pathMatchers(HttpMethod.DELETE, routeWordV1)
+                .hasRole(getAdjustedRoleName(RoleAuthority.ROLE_DELETE_WORDS))
+            .pathMatchers(HttpMethod.POST, routeUserInfoV1)
+                .hasRole(getAdjustedRoleName(RoleAuthority.ROLE_MANAGE_USERS))
+            .pathMatchers(HttpMethod.DELETE, routeUserInfoV1)
+                .hasRole(getAdjustedRoleName(RoleAuthority.ROLE_MANAGE_USERS))
+            .pathMatchers(HttpMethod.GET, *authWhitelist).permitAll()
+            .pathMatchers(HttpMethod.GET, "/").permitAll()
         .anyExchange().authenticated()
         .and()
 
@@ -76,5 +87,7 @@ class SecurityConfig(private val userService: UserService) {
                 }
         }
     }
+
+    private fun getAdjustedRoleName(role: RoleAuthority): String = role.toString().substringAfter("ROLE_")
 
 }

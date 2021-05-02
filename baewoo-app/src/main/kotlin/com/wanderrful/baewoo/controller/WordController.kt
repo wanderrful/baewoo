@@ -17,6 +17,7 @@ class WordController(private val wordRepository: WordRepository) {
         else wordRepository.findAll()
 
     // TODO | Mongo should verify that the level & word are not duplicated!
+    // TODO | This should be a list, so that I can add many at once!
     @PostMapping
     fun wordPost(@RequestBody word: Word) = wordRepository.save(word)
 
